@@ -8,15 +8,8 @@ Int32 low;   /*min value = 0*/
 int CheckRangeLoop(Int32 input, Int32 high, Int32 low);
 int CheckRangeNoLoop(Int32 input, Int32 high, Int32 low);
 
-#define CHECK_LIST(input, high, low)  \
-    Int32 set = 1;                    \
-    int result = 0;                   \
-    for (int i = low; i <= high; i++) \
-    {                                 \
-        Int32 target = input;         \
-        target = (target >> i) & set; \
-        result = result | target;     \
-    }
+#define TEST_BIT(target, bit) \
+    ((target >> bit) & (0x01))
 
 int main(void)
 {
@@ -24,6 +17,10 @@ int main(void)
     {
         printf("Please specify the input: ");
         scanf(" %i", &input);
+        if (input > 0xffffffff || input < 0)
+        {
+            printf("Input wrong num");
+        }
 
         printf("\tPlease specify the high: ");
         scanf(" %i", &high);
@@ -50,6 +47,7 @@ int main(void)
         printf("Input :0x%08x\n", input);
         printf("high :%i\n", high);
         printf("low :%i\n", low);
+
         int ans;
         ans = CheckRangeLoop(input, high, low);
         printf("CheckRangeLoop result: %d\n", ans);
@@ -61,17 +59,15 @@ int main(void)
 int CheckRangeLoop(Int32 input, Int32 high, Int32 low)
 {
     Int32 set = 1;
-    Int32 result = 0;
-    for (int i = low; i <= high; i++) // set bit
+    int result = 0;
+
+    for (int i = low; i <= high; i++)
     {
         Int32 target = input;
-        for (int j = 0; j < i; j++)
-        {
-            target = target >> 1;
-        }
-        target = target & set;
-        result = result | target;
-        if (result == 1)
+        int test = 0;
+        test = TEST_BIT(target, i);
+        result = result | test;
+        if (result > 0)
         {
             return 1;
         }
@@ -81,8 +77,13 @@ int CheckRangeLoop(Int32 input, Int32 high, Int32 low)
 
 int CheckRangeNoLoop(Int32 input, Int32 high, Int32 low)
 {
-    CHECK_LIST(input, high, low);
-    if (result == 1)
+    Int32 target = input;
+    Int32 test_lst = 0xffffffff;
+    Int32 high_lst = test_lst >> (31 - high);
+    Int32 low_lst = test_lst << low;
+    test_lst = high_lst & low_lst;
+
+    if (test_lst > 0)
     {
         return 1;
     }
